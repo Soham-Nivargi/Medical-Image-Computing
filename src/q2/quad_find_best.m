@@ -1,7 +1,6 @@
-% Load the images
-data = load('../../data/assignmentImageDenoising_phantom.mat');
-noiseless = data.imageNoiseless;
-noisy = data.imageNoisy;
+data = load('../../data/assignmentImageDenoising_brainMRIslice.mat');
+noiseless = data.brainMRIsliceOrig;
+noisy = data.brainMRIsliceNoisy;
 
 [rows,cols] = size(noisy);
 

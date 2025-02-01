@@ -22,21 +22,19 @@ for alpha = 0.01:0.01:1.00
     
     X_in = gradient_descent(alpha, gamma, step_size, prior_type, X_in, noisy, noiseless);
     
-    % figure();
-    % imshow(X_in);
-    % saveas(gcf, '../../results/denoised2.png');
+    figure();
+    imshow(X_in);
+    saveas(gcf, '../../results/denoised2.png');
     
     err = RRMSE(X_in, noiseless);
     if(err<min_err)
        min_alpha = alpha;
-       min_err = err;
+       min_err = err
     end
     list_plot(i) = err;
     i = i+1;
 end
 
-figure();
-plot(list_plot);
 
 
 

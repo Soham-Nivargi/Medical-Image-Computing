@@ -21,20 +21,20 @@ function X_in = gradient_descent(alpha, gamma, step_size, prior_type, X_in, nois
         obj = [obj, new_lp];
 
         if abs(new_lp-prev_lp) < 1e-8 % If change in log-posterior is very small, stop
-            disp(['Converged at iteration ', num2str(iter)]);
+            % disp(['Converged at iteration ', num2str(iter)]);
             break;
         end
         prev_lp = new_lp;
         
-        if mod(iter, 10) == 0
-            fprintf('Iteration %d, Objective Value: %.4f\n', iter, new_lp);
-        end
+        % if mod(iter, 10) == 0
+        %     fprintf('Iteration %d, Objective Value: %.4f\n', iter, new_lp);
+        % end
     
     end   
-    figure();
-    plot(obj);
-    title('Huber prior objective function');
-    % saveas(gcf, '../../results/q1/discont_huber/iteration_plot.png');
+    % figure();
+    % plot(obj);
+    % title('Quadratic prior objective function');
+    % saveas(gcf, '../../results/q2/huber/iteration_plot.png');
 end
 
 

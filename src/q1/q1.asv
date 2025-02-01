@@ -1,5 +1,4 @@
-% Load the images
-data = load('../data/assignmentImageDenoising_phantom.mat');
+data = load('../../data/assignmentImageDenoising_phantom.mat');
 noiseless = data.imageNoiseless;
 noisy = data.imageNoisy;
 
@@ -10,19 +9,30 @@ noiseless = noiseless/max(noiseless(:));
 
 figure();
 imshow(noiseless);
-saveas(gcf, '../results/noiseless2.png');
+% saveas(gcf, '../../results/q1/noiseless2.png');
 figure();
 imshow(noisy);
-saveas(gcf, '../results/noisy2.png');
+% saveas(gcf, '../../results/q1/noisy2.png');
+
+err_init = RRMSE(noisy, noiseless);
 
 % Initialize
 X_in = noisy;                       
-alpha = 0.5;                      
-gamma = 0.15;                      
-prior_type = 'huber';             % Choose 'quadratic', 'huber', or 'discontinuity'
-step_size = 0.01;                    % Initial step size (this can be adjusted)
+alpha = 0.97;                      
+gamma = 0.01*1.2;                      
+prior_type = 'discontinuity';             
+step_size = 0.01;
 
-X_in = 
+err_1 = RRMSE(X_in, noisy);
+
+X_in = gradient_descent(alpha, gamma, step_size, prior_type, X_in, noisy, noiseless);
+
+figure();
+imshow(X_in);
+saveas(gcf, '../../results/q1/discont_huber/denoised_discont_huber.png');
+
+err = RRMSE(X_in, noiseless);
+err_2 = RRMSE(X_in, noisy);
 
 
 
