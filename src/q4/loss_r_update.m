@@ -1,10 +1,4 @@
-function loss = loss_r_update(X, R, D, params)
-    % Compute the loss for the given D
+function loss = loss_r_update(x, r, D, params)
     p = params.p;
-    loss = 0;
-    for i = 1:size(X, 2)
-        x = X(:, i);
-        r = R(:, i);
-        loss = loss + norm(x - D * r, 2)^2 + params.lambda * norm(r, p)^p;
-    end
+    loss = norm(x - D * r, 2)^2 + norm(r, p)^p;
 end
