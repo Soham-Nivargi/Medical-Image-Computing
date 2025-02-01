@@ -1,0 +1,9 @@
+function V = quad_log_prior(X)
+    diff_x1 = estimate - circshift(estimate, [0, 1]);  % Right neighbor
+    diff_x2 = estimate - circshift(estimate, [0, -1]); % Left neighbor
+    diff_x3 = estimate - circshift(estimate, [1, 0]);  % Down neighbor
+    diff_x4 = estimate - circshift(estimate, [-1, 0]); % Up neighbor
+
+
+    V = sum(diff_x1(:).^2 + diff_x2(:).^2 + diff_x3);
+end
