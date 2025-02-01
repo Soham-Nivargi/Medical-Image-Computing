@@ -18,9 +18,9 @@ err_init = RRMSE(noisy, noiseless);
 
 % Initialize
 X_in = noisy;                       
-alpha = 0.24*1.2;               
+alpha = 0.23;               
 gamma = 0.01;                      
-prior_type = 'B';             
+prior_type = 'A';             
 step_size = 0.1;
 
 err_1 = RRMSE(X_in, noisy);
@@ -29,7 +29,7 @@ X_in = gradient_descent(alpha, gamma, step_size, prior_type, X_in, noisy, noisel
 
 figure();
 imshow(abs(X_in));
-saveas(gcf, '../../results/q3/B/B_denoised.png');
+saveas(gcf, '../../results/q3/A/A_denoised.png');
 
 err = RRMSE(X_in, noiseless);
 err_2 = RRMSE(X_in, noisy);
