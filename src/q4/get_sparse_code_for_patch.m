@@ -46,4 +46,7 @@ function r_new = get_sparse_code_for_patch(x, r, D, params)
         r = r_new;
 
     end
+
+    % Save losses to workspace
+    assignin('base', 'losses_q4c', losses);
 end
