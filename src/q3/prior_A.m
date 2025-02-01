@@ -1,10 +1,9 @@
-function V = huber_log_prior(estimate, gamma)
+function V = prior_A(estimate)
     diff_x1 = estimate - circshift(estimate, [0, 1]);  % Right neighbor
     diff_x2 = estimate - circshift(estimate, [0, -1]); % Left neighbor
     diff_y1 = estimate - circshift(estimate, [1, 0]);  % Down neighbor
     diff_y2 = estimate - circshift(estimate, [-1, 0]); % Up neighbor
-  
-    V = huber(diff_x1, gamma) + huber(diff_x2, gamma) + huber(diff_y1, gamma) + huber(diff_y2, gamma);
+
+    V = sum(sq_L2(diff_x1) + sq_L2(diff_x2) + sq_L2(diff_y1) + sq_L2(diff_y2), "all");
+
 end
-
-

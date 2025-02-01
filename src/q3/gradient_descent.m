@@ -31,10 +31,10 @@ function X_in = gradient_descent(alpha, gamma, step_size, prior_type, X_in, nois
         % end
     
     end   
-    % figure();
-    % plot(obj);
-    % title('Quadratic prior objective function');
-    % saveas(gcf, '../../results/q2/huber/iteration_plot.png');
+    figure();
+    plot(obj);
+    title('Quadratic prior objective function');
+    saveas(gcf, '../../results/q3/A/iteration_plot.png');
 end
 
 

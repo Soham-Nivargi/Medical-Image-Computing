@@ -11,7 +11,7 @@ min_alpha = 0;
 
 min_err = inf;
 gamma = 0.15;  
-prior_type = 'quadratic';
+prior_type = 'B';
 
 list_plot = zeros([100 1]);
 i=1;

@@ -7,26 +7,26 @@ noisy = data.brainMRIsliceNoisy;
 noisy = noisy/max(noisy(:));
 noiseless = noiseless/max(noiseless(:));
 
-% figure();
-% imshow(noiseless);
-% saveas(gcf, '../../results/q2/noiseless2.png');
-% figure();
-% imshow(noisy);
-% saveas(gcf, '../../results/q2/noisy2.png');
-% 
-% imagesc(abs(noisy));        % Show heatmap of magnitude values
-% colormap jet;              % Use the jet colormap
-% colorbar;                  % Add a color scale
-% axis equal;                % Keep aspect ratio
-% axis tight;                % Fit the axis
-% saveas(gcf, '../../results/q2/noisy_output.png');
-% 
-% imagesc(abs(noiseless));        % Show heatmap of magnitude values
-% colormap jet;              % Use the jet colormap
-% colorbar;                  % Add a color scale
-% axis equal;                % Keep aspect ratio
-% axis tight;                % Fit the axis
-% saveas(gcf, '../../results/q2/noisless_output.png');
+figure();
+imshow(noiseless);
+saveas(gcf, '../../results/q2/noiseless2.png');
+figure();
+imshow(noisy);
+saveas(gcf, '../../results/q2/noisy2.png');
+
+imagesc(abs(noisy));        % Show heatmap of magnitude values
+colormap jet;              % Use the jet colormap
+colorbar;                  % Add a color scale
+axis equal;                % Keep aspect ratio
+axis tight;                % Fit the axis
+saveas(gcf, '../../results/q2/noisy_output.png');
+
+imagesc(abs(noiseless));        % Show heatmap of magnitude values
+colormap jet;              % Use the jet colormap
+colorbar;                  % Add a color scale
+axis equal;                % Keep aspect ratio
+axis tight;                % Fit the axis
+saveas(gcf, '../../results/q2/noisless_output.png');
 
 err_init = RRMSE(noisy, noiseless);
 
