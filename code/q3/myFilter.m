@@ -12,15 +12,8 @@ function R_filt = myFilter(R, t, L, filter_type)
     end
     % plot(t,A_w);
 
-    R_tilda = fft(R, [], 1);
+    R_tilda = fftshift(fft(R,[],1));
     R_filt_f = R_tilda .* A_w;
-    R_filt = real(ifft(R_filt_f, [], 1));
-
-%     figure;
-% subplot(1,2,1);
-% imshow(log(abs(R_tilda) + 1), []); title('Before Filtering');
-% 
-% subplot(1,2,2);
-% imshow(log(abs(R_filt_f) + 1), []); title('After Filtering');
+    R_filt = real(ifft(ifftshift(R_filt_f),[],1));
 
 end
