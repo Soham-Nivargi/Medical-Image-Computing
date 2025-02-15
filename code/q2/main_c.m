@@ -1,0 +1,45 @@
+clc; clear;
+close all;
+
+S0 = phantom(128);
+
+mask1 = fspecial('gaussian', 11, 1);
+S1 = conv2(S0, mask1, 'same');
+
+mask2 = fspecial('gaussian', 51, 5);
+S5 = conv2(S0, mask2, 'same');
+
+theta = 0:3:177;
+[R0,t0] = radon(S0,theta);
+[R1,t1] = radon(S1,theta);
+[R5,t5] = radon(S5,theta);
+
+w_max0 = max(t0);
+w_max1 = max(t1);
+w_max5 = max(t5);
+
+for i=1:50
+    R_ramlek0{i} = myFilter(R0,t0,w_max0*i/50,'Ram-Lek');
+    R_ramlek1{i} = myFilter(R1,t1,w_max1*i/50,'Ram-Lek');
+    R_ramlek5{i} = myFilter(R5,t5,w_max5*i/50,'Ram-Lek');
+    
+    recon_0{i} = iradon(R_ramlek0{i}, theta, 'linear','none',1, 128);
+    recon_1{i} = iradon(R_ramlek1{i}, theta, 'linear','none',1, 128);
+    recon_5{i} = iradon(R_ramlek5{i}, theta, 'linear','none',1, 128);
+    
+    rmse0(i) = rrmse(S0, recon_0{i});
+    rmse1(i) = rrmse(S1, recon_1{i});
+    rmse5(i) = rrmse(S5, recon_5{i});
+end
+
+x = 1:50;
+
+figure();
+plot(x, rmse0);
+
+figure();
+plot(x, rmse1);
+
+figure();
+plot(x, rmse5);
+
