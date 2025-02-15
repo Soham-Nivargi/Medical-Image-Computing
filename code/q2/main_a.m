@@ -6,7 +6,7 @@ theta = 0:3:177;
 
 figure();
 imshow(I)
-title('Shepp-Logan Phantom')
+title('Shepp-Logan Phantom', FontSize=6)
 saveas(gcf, '../../results/q2/phantom.png')
 
 I_f = fftshift(fft2(I));
@@ -144,47 +144,47 @@ saveas(gcf, '../../results/q2/A/cosine_comparison.png')
 %-------------------------------------------------------------------
 figure();
 imshow(recon_ramlak_full, []);
-title('Ram-Lak Full Width Reconstruction')
+title('Ram-Lak Full Width Reconstruction', FontSize=4)
 saveas(gcf, '../../results/q2/A/ramlak_full.png')
 
 figure();
 imshow(recon_ramlak_half, []);
-title('Ram-Lak Half Width Reconstruction')
+title('Ram-Lak Half Width Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/ramlak_half.png')
 
 figure();
 imshow(recon_ramlak_ref, []);
-title('Ram-Lak Reference Reconstruction')
+title('Ram-Lak Reference Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/ramlak_ref.png')
 %-------------------------------------------------------------------
 figure();
 imshow(recon_shepp_full, []);
-title('Shepp-Logan Full Width Reconstruction')
+title('Shepp-Logan Full Width Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/shepp_full.png')
 
 figure();
 imshow(recon_shepp_half, []);
-title('Shepp-Logan Half Width Reconstruction')
+title('Shepp-Logan Half Width Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/shepp_half.png')
 
 figure();
 imshow(recon_shepp_ref, []);
-title('Shepp-Logan Reference Reconstruction')
-saveas(gcf, '../../results/q2/A/cosine_ref.png')
+title('Shepp-Logan Reference Reconstruction',FontSize=4)
+saveas(gcf, '../../results/q2/A/shepp_ref.png')
 %-------------------------------------------------------------------
 figure();
 imshow(recon_cosine_full, []);
-title('Cosine Full Width Reconstruction')
+title('Cosine Full Width Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/cosine_full.png')
 
 figure();
 imshow(recon_cosine_half, []);
-title('Cosine Half Width Reconstruction')
+title('Cosine Half Width Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/cosine_half.png')
 
 figure();
 imshow(recon_cosine_ref, []);
-title('Cosine Reference Reconstruction')
+title('Cosine Reference Reconstruction',FontSize=4)
 saveas(gcf, '../../results/q2/A/cosine_ref.png')
 
 
