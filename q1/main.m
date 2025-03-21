@@ -1,13 +1,11 @@
 load('data/assignmentSegmentBrain.mat');
 
-% imageData and imageMask are present now in the workspace
-% Parameters
-num_classes = 3; % Number of tissue classes (adjust as needed)
-q = 2;           % Fuzziness parameter
-sigma = 1.5;     % Standard deviation for Gaussian weight mask
-max_iters = 5;  % Maximum iterations
-tolerance = 1e-3;% Convergence threshold
-weight_size = 9; % Size of Gaussian weight mask
+num_classes = 3; 
+q = 2;     
+sigma = 1.5; 
+max_iters = 5; 
+tolerance = 1e-3;
+weight_size = 9;
 
 % Get image size
 [rows, cols] = size(imageData);
