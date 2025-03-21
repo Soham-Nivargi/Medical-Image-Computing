@@ -29,7 +29,7 @@ end
 fprintf('Initial class standard deviations: %.2f, %.2f, %.2f\n', stds(1), stds(2), stds(3));
 
 % beta_vaues = [0, 0.1, 0.25, 0.5, 1, 1.5, 2, 3, 5, 10, 20, 50, 100, 200];
-beta_vaues = [2];
+beta_vaues = [3];
 num_iters_em = 100;
 num_pixels = length(label_vector);
 
