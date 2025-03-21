@@ -53,14 +53,14 @@ for beta=beta_vaues
     
     figure();
     imshow(white_matter_mem);
-    title(sprintf('White matter membership image, beta = %.2f', beta));
+    title(sprintf('White matter membership, beta = %.2f', beta));
     saveas(gcf, ['Results/Label_estimates_for_different_betas/', num2str(beta), '/white_matter.png']);
     
     gray_matter_mem = zeros(size(imageMask));
     gray_matter_mem(imageMask == 1) = final_mem(:,2);
     figure();
     imshow(gray_matter_mem);
-    title(sprintf('Gray matter membership image, beta = %.2f', beta));
+    title(sprintf('Gray matter membership, beta = %.2f', beta));
     saveas(gcf, ['Results/Label_estimates_for_different_betas/', num2str(beta), '/gray_matter.png']);
     
     cerbro = zeros(size(imageMask));
@@ -68,6 +68,6 @@ for beta=beta_vaues
     
     figure();
     imshow(cerbro);
-    title(sprintf('CSF membership image, beta = %.2f', beta));
+    title(sprintf('CSF membership, beta = %.2f', beta));
     saveas(gcf, ['Results/Label_estimates_for_different_betas/', num2str(beta), '/csf.png']);
 end
