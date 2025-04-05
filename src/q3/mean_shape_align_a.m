@@ -15,7 +15,6 @@ function [mean_shape, aligned_shapes] = mean_shape_align_a(X, max_iter)
         end
         mean_shape = mean_shape / num_shapes;
 
-        % Normalize mean shape
         mean_shape_norm = mean_shape - mean(mean_shape, 1);
         mean_shape_norm = mean_shape_norm / norm(mean_shape, 'fro');
 
