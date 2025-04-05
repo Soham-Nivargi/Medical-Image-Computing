@@ -1,4 +1,4 @@
-function Y_aligned = code2_mean_all(X_ref, Y)
+function Y_aligned = mean_rot(X_ref, Y)
     N = size(X_ref, 1);
     
     % Columns
@@ -16,6 +16,6 @@ function Y_aligned = code2_mean_all(X_ref, Y)
     tx = params(3); ty = params(4);
     
     % Transform
-    R = [a, b1; -b1, a]; % this includes scale
+    R = [a, b1; -b1, a]; 
     Y_aligned = (Y * R) + [tx, ty];
 end

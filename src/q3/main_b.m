@@ -2,33 +2,58 @@ close all;
 clear;
 clc;
 
-data = load('../../data/hands2D.mat');
-shapes = data.shapes;
+data = load('../../data/robustShapeMean2D.mat');
+shapes = data.pointsets;
 
-[num_coords, num_points, num_shapes] = size(shapes);
+[num_shapes, num_points, num_coords] = size(shapes);
 X = cell(1, num_shapes);
 for i = 1:num_shapes
-    X{i} = shapes(:, :, i)'; 
+    X{i} = squeeze(shapes(i, :, :)); 
 end
 
-%% (b) Run Code22 and visualize results
-[max_shape, aligned_shapes_code22] = code22_mean(X, 10);
+c = cell(1, num_shapes);
+figure;
+hold on;
+for i = 1:num_shapes
+    c{i} = rand(1, 3);
+    plot(X{i}(:, 1), X{i}(:, 2), 'Color', c{i});
+end
+title('Initial hand shapes');
+axis equal; axis off;
+saveas(gcf, 'Results/initial_pointsets.png');
+
+for i = 1:num_shapes
+    X{i} = X{i} - mean(X{i}, 1);         
+    X{i} = X{i} / norm(X{i}, 'fro');
+end
 
 figure;
 hold on;
 for i = 1:num_shapes
-    plot(aligned_shapes_code22{i}(:,1), aligned_shapes_code22{i}(:,2),'.', 'Color', [0.5 0.5 0.5]);
+    plot(X{i}(:, 1), X{i}(:, 2), 'Color', c{i});
+end
+title('Normalized Initial hand shapes');
+axis equal; axis off;
+saveas(gcf, 'Results/norm_initial_pointsets.png');
+
+%% (b) Run Squared and visualize results
+[max_shape, aligned_shapes] = mean_shape_align_b(X, 10);
+
+figure;
+hold on;
+for i = 1:num_shapes
+    plot(aligned_shapes{i}(:,1), aligned_shapes{i}(:,2), 'Color', [0.5 0.5 0.5]);
 end
 plot(max_shape(:,1), max_shape(:,2), 'r-', 'LineWidth', 2);
-title('Code22: Aligned Shapes and Mean Shape');
+title('Squared: Aligned Shapes and Mean Shape');
 axis equal; axis off;
-saveas(gcf, 'Results/code2/mean_shape.png');
+saveas(gcf, 'Results/Part b/mean_shape.png');
 
 %% (c) principal modes of variation
 D = num_points * 2;
 data_matrix = zeros(num_shapes, D);
 for i = 1:num_shapes
-    flat_shape = reshape(aligned_shapes_code22{i}', [1, D]);  % Flattening (2x56 → 112x1 → 1x112)
+    flat_shape = reshape(aligned_shapes{i}', [1, D]);  % Flattening (2x56 → 112x1 → 1x112)
     data_matrix(i, :) = flat_shape;
 end
 
@@ -47,9 +72,9 @@ V = V(:, idx);  % Reorder eigenvectors
 % (c) Plot top 3 eigenvalues
 figure;
 bar(evals(1:3));
-title('Top 3 Principal Mode Variances (Code22)');
+title('Top 3 Principal Mode Variances (Squared)');
 xlabel('Principal Mode'); ylabel('Variance');
-saveas(gcf, 'Results/code2/principal_modes.png');
+saveas(gcf, 'Results/Part b/principal_modes.png');
 
 %% (d) Visualize shape mean ± k * sqrt(variance) along top principal modes
 k = 2;  % You can try k = 3 as well
@@ -62,14 +87,14 @@ for mode = 1:3
     figure;
     hold on;
     for i = 1:num_shapes
-        plot(aligned_shapes_code22{i}(:,1), aligned_shapes_code22{i}(:,2), 'Color', [0.8 0.8 0.8]);
+        plot(aligned_shapes{i}(:,1), aligned_shapes{i}(:,2), 'Color', [0.8 0.8 0.8]);
     end
     plot(max_shape(:,1), max_shape(:,2), 'k-', 'LineWidth', 2);
     plot(shape_plus(:,1), shape_plus(:,2), 'r--', 'LineWidth', 1.5);
     plot(shape_minus(:,1), shape_minus(:,2), 'b--', 'LineWidth', 1.5);
     title(['Principal Mode ' num2str(mode) ' Variation (±' num2str(k) ' SD)']);
     axis equal; axis off;
-    saveas(gcf, ['Results/code2/mode_', num2str(mode),'.png']);
+    saveas(gcf, ['Results/Part b/mode_', num2str(mode),'.png']);
 end
 
 k_vals = [2, 3];
@@ -91,5 +116,5 @@ for mode = 1:3
         axis equal; axis off;
         title([titles{mode} ' Mode ±' num2str(k) '\sigma']);
     end
-saveas(gcf, 'Results/code2/comparison_modes.png');
+saveas(gcf, 'Results/Part b/comparison_modes.png');
 end
