@@ -18,7 +18,7 @@ for i = 1:numImgs
     end
     bw = imbinarize(img);
 
-    B = bwboundaries(bw, 'noholes');
+    B = bwboundaries(bw, 'holes');
     if length(B) < 2
         warning('Skipping %s: inner boundary not found.', imgFiles(i).name);
         continue;
@@ -33,16 +33,13 @@ for i = 1:numImgs
     all_pointsets{i} = pointset;
 
     if i == 1
-        disp("Im in");
-        f = figure('Visible', 'off');  % <- Don't try to show it
-        plot(resampled_outer(:,2), resampled_outer(:,1), 'g-', 'LineWidth', 1.5); hold on;
-        plot(resampled_inner(:,2), resampled_inner(:,1), 'r-', 'LineWidth', 1.5);
+        f = figure();
+        scatter(resampled_outer(:,2), resampled_outer(:,1), 20, 'g', 'filled'); hold on;
+        scatter(resampled_inner(:,2), resampled_inner(:,1), 20, 'r', 'filled');
         title(sprintf('Pointset for Image %d: %s', i, imgFiles(i).name), 'Interpreter', 'none');
         legend('Outer', 'Inner');
         axis equal tight;
         
-        saveas(f, fullfile("pointset_001.png", sprintf('pointset_%d.png', i)));
-        close(f);
     end
 end
 
