@@ -1,66 +1,66 @@
 folder_path = '/Users/shreyasgrampurohit/Documents/College_Academia/Sem8/mic/Medical-Image-Computing/data/anatomicalSegmentations/anatomicalSegmentations';
-U_pca = perform_pca_on_segmentations(folder_path);
+% U_pca = perform_pca_on_segmentations(folder_path);
 [U_kpca, sigma, eigenvalues, data] = perform_kernel_pca_on_segmentations(folder_path);
 
-distorted_folder = '/Users/shreyasgrampurohit/Documents/College_Academia/Sem8/mic/Medical-Image-Computing/data/anatomicalSegmentationsDistorted/anatomicalSegmentationsDistorted';
-distorted_files = dir(fullfile(distorted_folder, '*.png'));
-num_distorted = length(distorted_files);
+% distorted_folder = '/Users/shreyasgrampurohit/Documents/College_Academia/Sem8/mic/Medical-Image-Computing/data/anatomicalSegmentationsDistorted/anatomicalSegmentationsDistorted';
+% distorted_files = dir(fullfile(distorted_folder, '*.png'));
+% num_distorted = length(distorted_files);
 
-output_pdf = 'comparison_results.pdf';
-output_pdf_2 = 'comparison_results_kpca.pdf';
+% output_pdf = 'comparison_results.pdf';
+% output_pdf_2 = 'comparison_results_kpca.pdf';
 
-for i = 1:num_distorted
-    distorted_img = imread(fullfile(distorted_folder, distorted_files(i).name));
-    if size(distorted_img, 3) == 3
-        distorted_img = rgb2gray(distorted_img);
-    end
-    distorted_img = im2double(imresize(distorted_img, [64, 64]));
+% for i = 1:num_distorted
+%     distorted_img = imread(fullfile(distorted_folder, distorted_files(i).name));
+%     if size(distorted_img, 3) == 3
+%         distorted_img = rgb2gray(distorted_img);
+%     end
+%     distorted_img = im2double(imresize(distorted_img, [64, 64]));
 
-    mean_img = mean(U_pca, 2);
-    denoised_img = denoise_using_pca(distorted_img, mean_img, U_pca);
+%     mean_img = mean(U_pca, 2);
+%     denoised_img = denoise_using_pca(distorted_img, mean_img, U_pca);
 
-    fig = figure('Visible', 'off');
-    subplot(1, 2, 1);
-    imshow(distorted_img, []);
-    title('Distorted Image');
-    subplot(1, 2, 2);
-    imshow(denoised_img, []);
-    title('Denoised Image');
+%     fig = figure('Visible', 'off');
+%     subplot(1, 2, 1);
+%     imshow(distorted_img, []);
+%     title('Distorted Image');
+%     subplot(1, 2, 2);
+%     imshow(denoised_img, []);
+%     title('Denoised Image');
 
-    exportgraphics(fig, output_pdf, 'Append', true);
-    close(fig);
-end
+%     exportgraphics(fig, output_pdf, 'Append', true);
+%     close(fig);
+% end
 
-disp(['Comparison results exported to ', output_pdf]);
+% disp(['Comparison results exported to ', output_pdf]);
 
-for i = 1:num_distorted
-    distorted_img = imread(fullfile(distorted_folder, distorted_files(i).name));
-    if size(distorted_img, 3) == 3
-        distorted_img = rgb2gray(distorted_img);
-    end
-    distorted_img = im2double(imresize(distorted_img, [64, 64]));
+% for i = 1:num_distorted
+%     distorted_img = imread(fullfile(distorted_folder, distorted_files(i).name));
+%     if size(distorted_img, 3) == 3
+%         distorted_img = rgb2gray(distorted_img);
+%     end
+%     distorted_img = im2double(imresize(distorted_img, [64, 64]));
 
-    x = distorted_img(:);
-    Kx = exp(-pdist2(x', data').^2 / (2 * sigma^2));
+%     x = distorted_img(:);
+%     Kx = exp(-pdist2(x', data').^2 / (2 * sigma^2));
 
-    k=3;
-    x_proj = (Kx * U_kpca(:, 1:k)) ./ sqrt(eigenvalues(1:k));
+%     k=3;
+%     x_proj = (Kx * U_kpca(:, 1:k)) ./ sqrt(eigenvalues(1:k));
 
-    denoised_img_kpca = kernel_pca_preimage(x_proj, data, sigma, U_kpca(:, 1:k), eigenvalues(1:k), k);
+%     denoised_img_kpca = kernel_pca_preimage(x_proj, data, sigma, U_kpca(:, 1:k), eigenvalues(1:k), k);
 
-    fig = figure('Visible', 'off');
-    subplot(1, 2, 1);
-    imshow(distorted_img, []);
-    title('Distorted Image');
-    subplot(1, 2, 2);
-    imshow(denoised_img_kpca, []);
-    title('Denoised Image (Kernel PCA)');
+%     fig = figure('Visible', 'off');
+%     subplot(1, 2, 1);
+%     imshow(distorted_img, []);
+%     title('Distorted Image');
+%     subplot(1, 2, 2);
+%     imshow(denoised_img_kpca, []);
+%     title('Denoised Image (Kernel PCA)');
 
-    exportgraphics(fig, output_pdf_2, 'Append', true);
-    close(fig);
-end
+%     exportgraphics(fig, output_pdf_2, 'Append', true);
+%     close(fig);
+% end
 
-disp(['Comparison results exported to ', output_pdf_2]);
+% disp(['Comparison results exported to ', output_pdf_2]);
 
 function U_pca = perform_pca_on_segmentations(folderPath)
     targetSize = [64, 64];
@@ -81,6 +81,25 @@ function U_pca = perform_pca_on_segmentations(folderPath)
     centeredMatrix = imageMatrix - meanImageVec;
     [U, S, ~] = svd(centeredMatrix, 'econ');
     U_pca = U;
+
+    % Show (i) the eigen spectrum, (ii) the mean image, and (iii) the first 2 modes of variation around the mean (as
+% images).
+    figure;
+    subplot(2, 2, 1);
+    plot(diag(S.^2), 'o-');
+    title('Eigen Spectrum');
+    xlabel('Index');
+    ylabel('Eigenvalue');
+
+    subplot(2, 2, 2);
+    imshow(reshape(meanImageVec, targetSize), []);
+    title('Mean Image');
+
+    for i = 1:2
+        subplot(2, 2, i + 2);
+        imshow(reshape(U(:, i), targetSize), []);
+        title(['Mode ', num2str(i)]);
+    end
 end
 
 function [U_kpca, sigma, eigenvalues, data] = perform_kernel_pca_on_segmentations(folderPath)
@@ -120,6 +139,35 @@ function [U_kpca, sigma, eigenvalues, data] = perform_kernel_pca_on_segmentation
     end
 
     U_kpca = V;
+
+    % Show (i) the eigen spectrum and (ii) an estimate of the segmentation image that the kernel would (implicitly)
+% map to a point closest to the mean in RKHS; such an estimate is called the pre-”image” associated with the
+% kernel.
+    figure;
+    plot(eigenvalues, 'bo-');
+    title('Kernel PCA Eigen Spectrum');
+    xlabel('Component Index');
+    ylabel('Eigenvalue');
+
+    % Step 5: Estimate the pre-image closest to the mean in RKHS
+    mean_in_RKHS = mean(Kc, 2); % average over training points
+    weights = mean_in_RKHS' * V(:,1:10); % first few components
+
+    % Pre-image via weighted sum of training images
+    x_hat = zeros(size(data, 1), 1);
+    total_weight = 0;
+    for i = 1:n
+        alpha = weights * V(i, 1:10)';
+        x_hat = x_hat + alpha * data(:, i);
+        total_weight = total_weight + alpha;
+    end
+    x_hat = x_hat / total_weight;
+
+    % Reshape & display the pre-image
+    img_hat = reshape(x_hat, [64, 64]);
+    figure;
+    imshow(img_hat, []);
+    title('Estimated Pre-image Closest to Mean in RKHS');
 end
 
 function denoised_img = denoise_using_pca(distorted_img, mean_img, U_pca)
