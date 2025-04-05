@@ -1,4 +1,4 @@
-inputFolder = '/Users/shreyasgrampurohit/Documents/College_Academia/Sem8/mic/assignments/assignmentShapeAnalysis/data/anatomicalSegmentations';  % <<< CHANGE THIS
+inputFolder = '../../data/anatomicalSegmentations/anatomicalSegmentations';
 outputFile = 'all_pointsets.mat';
 N = 100;
 
