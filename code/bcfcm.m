@@ -8,13 +8,15 @@ mask = data.imageMask;
 image = image .* mask;
 brainPixels = double(image(mask == 1));
 
-gaussian_mask = fspecial('gaussian', [9 9], 1);  % 1 is the standard deviation (sigma), adjust as needed
+K=3;
+[label_vector, means] = kmeans_estimate(brainPixels, K, 25, 1e-4);
+
+gaussian_mask = fspecial('gaussian', [9 9], 1);
 
 bias = double(mask);
 num_iters = 100;
 tol = 1e-5;
-C=3;
 q=2;
 
 
-[U, centres] = bias_fcm(brainPixels,C,q,bias,mask,gaussian_mask,num_iters,tol);
+[U, centres] = bias_fcm(brainPixels,K,q,bias,mask,gaussian_mask,label_vector,means,num_iters,tol);
