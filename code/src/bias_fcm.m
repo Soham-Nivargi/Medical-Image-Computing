@@ -1,4 +1,4 @@
-function [U, centers] = bias_fcm(X, C, q, bias, mask, gaussian_mask, label_vector, means, max_iter, epsilon)
+function [mem, means] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon)
 
     N = size(X, 1);
     d = size(X, 2);
@@ -8,56 +8,63 @@ function [U, centers] = bias_fcm(X, C, q, bias, mask, gaussian_mask, label_vecto
     mem = zeros(N,C);
     masked_bias = bias(mask==1);
 
+    brain_indices = find(mask);
+    weights = zeros(length(X), length(X));
+
+    % Compute weights w_ij common across all iterations
+    for j=1:length(X)
+        linear_idx = brain_indices(j);        % the linear index in the full image
+        [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
+        gaussian_mask_temp = zeros(size(mask));
+        gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
+        weights(:,j) = gaussian_mask_temp(mask==1);
+    end
+    
+    objective = compute_obj(distances, mem.^q);
+
     for iter = 1:max_iter
         mem_old = mem;
-        
-        brain_indices = find(mask);
-        weights = zeros(length(X), length(X));
-        % Compute weights
-        for j=1:size(X)
-            linear_idx = brain_indices(j);        % the linear index in the full image
-            [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
-            gaussian_mask_temp = zeros(size(mask));
-            gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
-            weights(:,j) = gaussian_mask_temp(mask==1);
-        end
-        clc;
-        
-        label_image(mask==1) = X;
-        
-            
-        
-        
-        % Update memberships
+       
+        objective_old = objective;
+        % Compute distances
         for k=1:C
-            for j=1:size(X)
+            for j=1:length(X)
                 distances(j,k) = (sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2))).^(-1 / (q-1));
             end
         end
+
+        % Update memberships
         mem = distances ./ sum(distances, 2);
         
+        % Update bias
+        mem_q = mem.^q;
         
-        % Compute cluster centers
-        Um = U.^q;
-        centers = (Um * X) ./ sum(Um, 2);
-        
-        % Update distances
-        dist = zeros(N, C);
-        for k = 1:C
-            dist(:,k) = (X - centers(k)).^2';
+        for i=1:length(X)
+            dist1 = zeros(size(X));
+            dist2 = zeros(size(X));
+            for j=1:length(X)
+                dist1(j) = weights(i,j)*X(j)*(mem_q(j,:)*means);
+                dist2(j) = weights(i,j)*(mem_q(j,:)*(means.^2));
+            end
+            masked_bias(i) = sum(dist1)/sum(dist2);
         end
-        dist = max(dist, 1e-10);
         
-        % Update membership
-        tmp = dist .^ (-1 / (q - 1));
-        U = (tmp ./ sum(tmp, 2))';
-        
+        % Update cluster centres
+        dist3 = zeros(size(X));
+        dist4 = zeros(size(X));
+        for k=1:C
+            for j=1:length(X)
+                dist3(j) = mem_q(j,k)*X(j)*sum(weights(:,j).*masked_bias);
+                dist4(j) = mem_q(j,k)*sum(weights(:,j).*(masked_bias.^2));
+            end
+            means(k) = sum(dist3)/sum(dist4);
+        end
+            
+        objective = compute_obj(distances, mem_q);
+
         % Convergence
-        if norm(U - U_old, 'fro') < epsilon
+        if norm(mem - mem_old, 'fro') < epsilon
             break;
         end
     end
-
-    U = U';          % (N x C)
-    centers = centers; % (C x d)
 end
