@@ -29,26 +29,38 @@ function [mem, means] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_
         % Compute distances
         for k=1:C
             for j=1:length(X)
-                distances(j,k) = (sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2))).^(-1 / (q-1));
+                distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
             end
         end
 
         % Update memberships
-        mem = distances ./ sum(distances, 2);
+        mem = (distances.^(-1/(q-1))) ./ sum(distances.^(-1/(q-1)), 2);
         
         % Update bias
         mem_q = mem.^q;
         
-        for i=1:length(X)
-            dist1 = zeros(size(X));
-            dist2 = zeros(size(X));
-            for j=1:length(X)
-                dist1(j) = weights(i,j)*X(j)*(mem_q(j,:)*means);
-                dist2(j) = weights(i,j)*(mem_q(j,:)*(means.^2));
-            end
+        % for i=1:length(X)
+        %     dist1 = zeros(size(X));
+        %     dist2 = zeros(size(X));
+        %     for j=1:length(X)
+        %         dist1(j) = weights(i,j)*X(j)*(mem_q(j,:)*means);
+        %         dist2(j) = weights(i,j)*(mem_q(j,:)*(means.^2));
+        %     end
+        %     masked_bias(i) = sum(dist1)/sum(dist2);
+        % end
+
+        % dist1 = weights .* (X' .* (mem_q*means));  % size: N × N
+        % dist2 = weights .* (mem_q*(means.^2));        % size: N × N
+        % masked_bias = sum(dist1, 1) ./ sum(dist2, 1);
+
+        for i=1:length(X) 
+            dist1 = weights(i,:)'.*X.*(mem_q*means);
+            dist2 = weights(i,:)'.*(mem_q*(means.^2));
             masked_bias(i) = sum(dist1)/sum(dist2);
         end
         
+        
+
         % Update cluster centres
         dist3 = zeros(size(X));
         dist4 = zeros(size(X));
@@ -63,7 +75,7 @@ function [mem, means] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_
         objective = compute_obj(distances, mem_q);
 
         % Convergence
-        if norm(mem - mem_old, 'fro') < epsilon
+        if objective - objective_old < epsilon
             break;
         end
     end
