@@ -1,4 +1,4 @@
-function [mem, means] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon)
+function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon)
 
     N = size(X, 1);
     d = size(X, 2);
@@ -75,7 +75,7 @@ function [mem, means] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_
         objective = compute_obj(distances, mem_q);
 
         % Convergence
-        if objective - objective_old < epsilon
+        if objective_old - objective < epsilon
             break;
         end
     end

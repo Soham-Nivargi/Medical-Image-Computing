@@ -29,4 +29,4 @@ tol = 1e-5;
 q=2;
 
 
-[U, centres] = bias_fcm(brainPixels,K,q,bias,mask,gaussian_mask,means,num_iters,tol);
+[memberships, centres, bias_field] = bias_fcm(brainPixels,K,q,bias,mask,gaussian_mask,means,num_iters,tol);
