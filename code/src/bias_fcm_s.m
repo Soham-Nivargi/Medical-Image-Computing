@@ -1,4 +1,4 @@
-function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon)
+function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon, lambdas, alpha)
 
     N = size(X, 1);
     d = size(X, 2);
@@ -22,20 +22,32 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
     
     objective = compute_obj(distances, mem.^q);
 
+    % Initialize distances
+    for k=1:C
+        for j=1:length(X)
+            distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
+        end
+    end
+
+    % Initialize membership
+    mem = (distances.^(-1/(q-1))) ./ sum(distances.^(-1/(q-1)), 2);
+
     for iter = 1:max_iter
         mem_old = mem;
        
         objective_old = objective;
+
         % Compute distances
         for k=1:C
             for j=1:length(X)
-                distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
+                distances(j,k) = lambdas(k) * sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2)) + ...
+                    alpha * lambdas(k) * (sum(weights(:,j).*((1 - mem(:, k))))).^q;
             end
         end
 
         % Update memberships
         mem = (distances.^(-1/(q-1))) ./ sum(distances.^(-1/(q-1)), 2);
-        
+
         % Update bias
         mem_q = mem.^q;
         
@@ -54,11 +66,19 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
         % masked_bias = sum(dist1, 1) ./ sum(dist2, 1);
 
         for i=1:length(X) 
-            dist1 = weights(:, i).*X.*(mem_q*means);
-            dist2 = weights(:, i).*(mem_q*(means.^2));
+            dist1 = weights(i,:)'.*X.*(mem_q*means).*lambdas;
+            dist2 = weights(i,:)'.*(mem_q*(means.^2).*lambdas);
             masked_bias(i) = sum(dist1)/sum(dist2);
         end
         
+        % Make masked_bias shape to 256 x 256
+        reshaped_bias = zeros(size(mask));
+        reshaped_bias(mask==1) = masked_bias;
+
+        % Apply bilateral filter to the bias field. Use imbilatfilt
+        % to smooth the bias field
+        reshaped_bias = imbilatfilt(reshaped_bias);
+        masked_bias = reshaped_bias(mask==1);
         
 
         % Update cluster centres
