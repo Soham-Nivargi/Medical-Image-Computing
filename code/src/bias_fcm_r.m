@@ -1,4 +1,4 @@
-function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon)
+function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_mask, means, max_iter, epsilon, lambdas, alpha)
 
     N = size(X, 1);
     d = size(X, 2);
@@ -11,8 +11,6 @@ function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_ma
     brain_indices = find(mask);
     weights = zeros(length(X), length(X));
 
-    objective_plot = [];
-
     % Compute weights w_ij common across all iterations
     for j=1:length(X)
         linear_idx = brain_indices(j);        % the linear index in the full image
@@ -23,32 +21,36 @@ function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_ma
     end
     
     objective = compute_obj(distances, mem.^q);
+    objective_plot = [];
+
+    % Initialize distances
+    for k=1:C
+        for j=1:length(X)
+            distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
+        end
+    end
+
+    % Initialize membership
+    mem = (distances.^(-1/(q-1))) ./ sum(distances.^(-1/(q-1)), 2);
 
     for iter = 1:max_iter
+        mem_old = mem;
        
         objective_old = objective;
+
         % Compute distances
         for k=1:C
             for j=1:length(X)
-                distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
+                distances(j,k) = lambdas(k) * sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2)) + ...
+                    alpha * lambdas(k) * (sum(weights(:,j).*((1 - mem(:, k))))).^q;
             end
         end
 
         % Update memberships
         mem = (distances.^(-1/(q-1))) ./ sum(distances.^(-1/(q-1)), 2);
 
-        % Average membership
-        H = zeros(N, C);
-        for j = 1:length(X)
-            H(j,:) = sum(mem .* weights(:, j), 1);
-        end
-        mem = H .* mem;
-        mem = mem ./ sum(mem, 2);
-        
         % Update bias
         mem_q = mem.^q;
-
-        
         
         % for i=1:length(X)
         %     dist1 = zeros(size(X));
@@ -65,11 +67,19 @@ function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_ma
         % masked_bias = sum(dist1, 1) ./ sum(dist2, 1);
 
         for i=1:length(X) 
-            dist1 = weights(:, i).*X.*(mem_q*means);
-            dist2 = weights(:, i).*(mem_q*(means.^2));
+            dist1 = weights(:, i).*X.*(mem_q*means).*lambdas;
+            dist2 = weights(:, i).*(mem_q*(means.^2).*lambdas);
             masked_bias(i) = sum(dist1)/sum(dist2);
         end
         
+        % Make masked_bias shape to 256 x 256
+        reshaped_bias = zeros(size(mask));
+        reshaped_bias(mask==1) = masked_bias;
+
+        % Apply bilateral filter to the bias field. Use imbilatfilt
+        % to smooth the bias field
+        reshaped_bias = imbilatfilt(reshaped_bias);
+        masked_bias = reshaped_bias(mask==1);
         
 
         % Update cluster centres
@@ -88,7 +98,7 @@ function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_ma
 
         objective_plot = [objective_plot, objective];
         % Convergence
-        if iter>1 && objective_old - objective < epsilon
+        if iter>1 && abs(objective_old - objective) < epsilon
             break;
         end
     end
@@ -99,5 +109,6 @@ function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_ma
     ylabel('Objective function');
     title('Iterative update of the objective function');
     grid on;
-    saveas(gcf,'../results/mri/bcfcm/obj.png');
+    % saveas(gcf,'../results/mri/bcefcm_r/obj.png');
+
 end

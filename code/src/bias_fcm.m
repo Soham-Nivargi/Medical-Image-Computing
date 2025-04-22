@@ -11,6 +11,8 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
     brain_indices = find(mask);
     weights = zeros(length(X), length(X));
 
+    objective_plot = [];
+
     % Compute weights w_ij common across all iterations
     for j=1:length(X)
         linear_idx = brain_indices(j);        % the linear index in the full image
@@ -23,7 +25,6 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
     objective = compute_obj(distances, mem.^q);
 
     for iter = 1:max_iter
-        mem_old = mem;
        
         objective_old = objective;
         % Compute distances
@@ -74,9 +75,19 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
             
         objective = compute_obj(distances, mem_q);
         disp(objective);
+
+        objective_plot = [objective_plot, objective];
         % Convergence
         if iter>1 && objective_old - objective < epsilon
             break;
         end
     end
+
+    figure;
+    plot(objective_plot, 'LineWidth', 2);
+    xlabel('Iteration');
+    ylabel('Objective function');
+    title('Iterative update of the objective function');
+    grid on;
+    saveas(gcf,'../results/mri/bcfcm/obj.png');
 end

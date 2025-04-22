@@ -36,19 +36,17 @@ function [mem, means, masked_bias] = bias_fcm_s(X, C, q, bias, mask, gaussian_ma
 
         % Update memberships
         mem = (distances.^(-1/(q-1))) ./ sum(distances.^(-1/(q-1)), 2);
-
-        % Average membership
-        H = zeros(N, C);
-        for j = 1:length(X)
-            H(j,:) = sum(mem .* weights(:, j), 1);
-        end
-        mem = H .* mem;
-        mem = mem ./ sum(mem, 2);
         
         % Update bias
         mem_q = mem.^q;
 
-        
+        % Average membership
+        H = zeros(C, N);
+        for j = 1:length(X)
+            H(:, j) = sum(U .* weights(:, j)', 2);
+        end
+        U = H .* U;
+        U = U ./ sum(U, 1);
         
         % for i=1:length(X)
         %     dist1 = zeros(size(X));

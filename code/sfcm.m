@@ -27,15 +27,47 @@ num_iters = 100;
 tol = 1e-5;
 q=2;
 
-[U, centers] = s_fcm(brainPixels,K,q,mask,gaussian_mask,num_iters,tol);
+[memberships, centres] = s_fcm(brainPixels,K,q,mask,gaussian_mask,num_iters,tol);
 
-% Plot the three memberships 
+label_image = zeros(size(mask));
+final_label_image = zeros(size(mask));
+
 figure;
-for i=1:K
-    subplot(1,K,i);
-    label_image = zeros(size(mask));label_image(mask==1) = U(:, i);
+for i=1:3
+    if abs(centres(i)-0.22)<0.1
+        prt = 'CSF';
+        label_image(mask==1) = 1*memberships(:, i);
+        final_label_image = final_label_image + label_image;
+    elseif abs(centres(i)-0.62)<0.1
+        prt = 'White matter';
+        label_image(mask==1) = 3*memberships(:, i);
+        final_label_image = final_label_image + label_image;
+    else
+        prt = 'Gray matter';
+        label_image(mask==1) = 2*memberships(:, i);
+        final_label_image = final_label_image + label_image;
+    end
+    subplot(1,3,i);
+    label_image = zeros(size(mask));label_image(mask==1) = memberships(:, i);
     imagesc(label_image);
     colormap(gray);
-    title(['Membership for cluster ' num2str(i)]);
+    title([prt ' Membership']);
     axis image;
 end
+saveas(gcf, '../results/mri/sfcm/memberships.png');
+
+figure;
+imshow(final_label_image, []);
+title('Final label image (in grayscale)');
+saveas(gcf, '../results/mri/sfcm/grayscale_label.png');
+
+figure();
+imagesc(final_label_image.*mask);
+colormap(jet(4));
+colorbar('Ticks', 1:3, ...
+         'TickLabels', {'Cluster 1', 'Cluster 2', 'Cluster 3'});
+axis off;
+title('Final Segmentation');
+axis off;
+title('Final label image (color)');
+saveas(gcf, '../results/mri/sfcm/color_label.png');

@@ -22,6 +22,8 @@ function [U, centers] = s_fcm(X, C, q, mask, gaussian_mask, max_iter, tol)
     
     Um = U.^q;
     centers = (Um * X) ./ sum(Um, 2);
+
+    objective_plot = [];
     
     % Update distances
     dist = zeros(N, C);
@@ -60,12 +62,21 @@ function [U, centers] = s_fcm(X, C, q, mask, gaussian_mask, max_iter, tol)
 
         % Convergence using objective function
         objective_new = compute_obj(dist, (U.^q)');
+        objective_plot = [objective_plot, objective_new];
         if abs(objective - objective_new) < tol
             break;
         end
         objective = objective_new;
         disp(objective);
     end
+
+    figure;
+    plot(objective_plot, 'LineWidth', 2);
+    xlabel('Iteration');
+    ylabel('Objective function');
+    title('Iterative update of the objective function');
+    grid on;
+    saveas(gcf,'../results/mri/sfcm/obj.png');
 
     U = U';          % (N x C)
     centers = centers; % (C x d)
