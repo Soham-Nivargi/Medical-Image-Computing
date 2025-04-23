@@ -2,7 +2,6 @@ clear; close all; clc;
 addpath(genpath('src'));
 
 % data = load('../data/assignmentSegmentBrain.mat');
-% 
 % image = data.imageData;
 % mask = data.imageMask;
 
@@ -53,7 +52,7 @@ q=2;
 
 label_image = zeros(size(mask));
 final_label_image = zeros(size(mask));
-
+% mri
 % figure;
 % for i=1:3
 %     if i==1
@@ -102,6 +101,7 @@ final_label_image = zeros(size(mask));
 % figure; label_finale = zeros(size(mask)); label_finale(mask==1) = brain_pix;imshow(label_finale, []); title('Bias corrected Image')
 % saveas(gcf, '../results/mri/bcfcm/bias_corrected.png')
 
+% coins
 figure;
 for i=1:2
     if i==1

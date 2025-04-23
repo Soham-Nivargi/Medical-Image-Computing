@@ -2,7 +2,6 @@ clear; close all; clc;
 addpath(genpath('src'));
 
 % data = load('../data/assignmentSegmentBrain.mat');
-% 
 % image = data.imageData;
 % mask = data.imageMask;
 image = im2double(imread("coins.png"));
@@ -28,6 +27,7 @@ label_image = zeros(size(mask));
 
 final_label_image = zeros(size(mask));
 
+% mri
 % figure;
 % for i=1:3
 %     if abs(centres(i)-0.22)<0.1
@@ -67,6 +67,8 @@ final_label_image = zeros(size(mask));
 % axis off;
 % title('Final label image (color)');
 % saveas(gcf, '../results/mri/conv_fcm/color_label.png');
+
+% coins
 figure;
 for i=1:2
     if abs(centres(i)-0.22)<0.1

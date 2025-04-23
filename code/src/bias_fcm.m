@@ -12,16 +12,16 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
     
 
     objective_plot = [];
-    % To save time
-    % Compute weights w_ij common across all iterations
-    % weights = zeros(length(X), length(X));
-    % for j=1:length(X)
-    %     linear_idx = brain_indices(j);        % the linear index in the full image
-    %     [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
-    %     gaussian_mask_temp = zeros(size(mask));
-    %     gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
-    %     weights(:,j) = gaussian_mask_temp(mask==1);
-    % end
+   
+    % weights w_ij without memory constraint
+    weights = zeros(length(X), length(X));
+    for j=1:length(X)
+        linear_idx = brain_indices(j);        % the linear index in the full image
+        [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
+        gaussian_mask_temp = zeros(size(mask));
+        gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
+        weights(:,j) = gaussian_mask_temp(mask==1);
+    end
     
     objective = compute_obj(distances, mem.^q);
 
@@ -31,40 +31,40 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
         % Compute distances
         for k=1:C
             for j=1:length(X)
-                % To save memory
-                linear_idx = brain_indices(j);        % the linear index in the full image
-                [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
-                gaussian_mask_temp = zeros(size(mask));
-                if x>4 && x<=size(gaussian_mask_temp,1)-4
-                    if y>4 && y<=size(gaussian_mask_temp,2)-4
-                        gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
-                    elseif y<=4
-                        gaussian_mask_temp(x-4:x+4, 1:y+4) = gaussian_mask(:,6-y:9);
-                    else
-                        gaussian_mask_temp(x-4:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(:,1:5+(size(gaussian_mask_temp,2)-y));
-                    end
-                elseif x<=4
-                    if y>4 && y<=size(gaussian_mask_temp,2)-4
-                        gaussian_mask_temp(1:x+4, y-4:y+4) = gaussian_mask(6-x:9, :);
-                    elseif y<=4
-                        gaussian_mask_temp(1:x+4, 1:y+4) = gaussian_mask(6-x:9,6-y:9);
-                    else
-                        gaussian_mask_temp(1:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(6-x:9,1:5+(size(gaussian_mask_temp,2)-y));
-                    end
-                else
-                    if y>4 && y<=size(gaussian_mask_temp,2)-4
-                        gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x), :);
-                    elseif y<=4
-                        gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), 1:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),6-y:9);
-                    else
-                        gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:size(gaussian_mask_temp,2)) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),1:5+(size(gaussian_mask_temp,2)-y));
-                    end
-                end
-                weights = gaussian_mask_temp(mask==1);
-                distances(j,k) = sum(weights.*((X(j) - means(k)*masked_bias).^2));
+                % Weights with memory constraint
+                % linear_idx = brain_indices(j);        % the linear index in the full image
+                % [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
+                % gaussian_mask_temp = zeros(size(mask));
+                % if x>4 && x<=size(gaussian_mask_temp,1)-4
+                %     if y>4 && y<=size(gaussian_mask_temp,2)-4
+                %         gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
+                %     elseif y<=4
+                %         gaussian_mask_temp(x-4:x+4, 1:y+4) = gaussian_mask(:,6-y:9);
+                %     else
+                %         gaussian_mask_temp(x-4:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(:,1:5+(size(gaussian_mask_temp,2)-y));
+                %     end
+                % elseif x<=4
+                %     if y>4 && y<=size(gaussian_mask_temp,2)-4
+                %         gaussian_mask_temp(1:x+4, y-4:y+4) = gaussian_mask(6-x:9, :);
+                %     elseif y<=4
+                %         gaussian_mask_temp(1:x+4, 1:y+4) = gaussian_mask(6-x:9,6-y:9);
+                %     else
+                %         gaussian_mask_temp(1:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(6-x:9,1:5+(size(gaussian_mask_temp,2)-y));
+                %     end
+                % else
+                %     if y>4 && y<=size(gaussian_mask_temp,2)-4
+                %         gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x), :);
+                %     elseif y<=4
+                %         gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), 1:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),6-y:9);
+                %     else
+                %         gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:size(gaussian_mask_temp,2)) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),1:5+(size(gaussian_mask_temp,2)-y));
+                %     end
+                % end
+                % weights = gaussian_mask_temp(mask==1);
+                % distances(j,k) = sum(weights.*((X(j) - means(k)*masked_bias).^2));
 
-
-                % distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
+                % weights without memory constraint
+                distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
             end
         end
 
@@ -73,106 +73,94 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
         
         % Update bias
         mem_q = mem.^q;
-        
-        % for i=1:length(X)
-        %     dist1 = zeros(size(X));
-        %     dist2 = zeros(size(X));
-        %     for j=1:length(X)
-        %         dist1(j) = weights(i,j)*X(j)*(mem_q(j,:)*means);
-        %         dist2(j) = weights(i,j)*(mem_q(j,:)*(means.^2));
-        %     end
-        %     masked_bias(i) = sum(dist1)/sum(dist2);
-        % end
-
-        % dist1 = weights .* (X' .* (mem_q*means));  % size: N × N
-        % dist2 = weights .* (mem_q*(means.^2));        % size: N × N
-        % masked_bias = sum(dist1, 1) ./ sum(dist2, 1);
 
         for j=1:length(X) 
 
-            linear_idx = brain_indices(j);        % the linear index in the full image
-            [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
-            gaussian_mask_temp = zeros(size(mask));
-            if x>4 && x<=size(gaussian_mask_temp,1)-4
-                if y>4 && y<=size(gaussian_mask_temp,2)-4
-                    gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
-                elseif y<=4
-                    gaussian_mask_temp(x-4:x+4, 1:y+4) = gaussian_mask(:,6-y:9);
-                else
-                    gaussian_mask_temp(x-4:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(:,1:5+(size(gaussian_mask_temp,2)-y));
-                end
-            elseif x<=4
-                if y>4 && y<=size(gaussian_mask_temp,2)-4
-                    gaussian_mask_temp(1:x+4, y-4:y+4) = gaussian_mask(6-x:9, :);
-                elseif y<=4
-                    gaussian_mask_temp(1:x+4, 1:y+4) = gaussian_mask(6-x:9,6-y:9);
-                else
-                    gaussian_mask_temp(1:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(6-x:9,1:5+(size(gaussian_mask_temp,2)-y));
-                end
-            else
-                if y>4 && y<=size(gaussian_mask_temp,2)-4
-                    gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x), :);
-                elseif y<=4
-                    gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), 1:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),6-y:9);
-                else
-                    gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:size(gaussian_mask_temp,2)) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),1:5+(size(gaussian_mask_temp,2)-y));
-                end
-            end
-            weights = gaussian_mask_temp(mask==1);
+            % weights with memory constraint
+            % linear_idx = brain_indices(j);        % the linear index in the full image
+            % [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
+            % gaussian_mask_temp = zeros(size(mask));
+            % if x>4 && x<=size(gaussian_mask_temp,1)-4
+            %     if y>4 && y<=size(gaussian_mask_temp,2)-4
+            %         gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
+            %     elseif y<=4
+            %         gaussian_mask_temp(x-4:x+4, 1:y+4) = gaussian_mask(:,6-y:9);
+            %     else
+            %         gaussian_mask_temp(x-4:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(:,1:5+(size(gaussian_mask_temp,2)-y));
+            %     end
+            % elseif x<=4
+            %     if y>4 && y<=size(gaussian_mask_temp,2)-4
+            %         gaussian_mask_temp(1:x+4, y-4:y+4) = gaussian_mask(6-x:9, :);
+            %     elseif y<=4
+            %         gaussian_mask_temp(1:x+4, 1:y+4) = gaussian_mask(6-x:9,6-y:9);
+            %     else
+            %         gaussian_mask_temp(1:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(6-x:9,1:5+(size(gaussian_mask_temp,2)-y));
+            %     end
+            % else
+            %     if y>4 && y<=size(gaussian_mask_temp,2)-4
+            %         gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x), :);
+            %     elseif y<=4
+            %         gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), 1:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),6-y:9);
+            %     else
+            %         gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:size(gaussian_mask_temp,2)) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),1:5+(size(gaussian_mask_temp,2)-y));
+            %     end
+            % end
+            % weights = gaussian_mask_temp(mask==1);
+            % 
+            % 
+            % 
+            % dist1 = weights.*X.*(mem_q*means);
+            % dist2 = weights.*(mem_q*(means.^2));
 
-            % dist1 = weights(:, j).*X.*(mem_q*means);
-            % dist2 = weights(:, j).*(mem_q*(means.^2));
-
-            dist1 = weights.*X.*(mem_q*means);
-            dist2 = weights.*(mem_q*(means.^2));
+            % weights without memory constraint
+            dist1 = weights(:, j).*X.*(mem_q*means);
+            dist2 = weights(:, j).*(mem_q*(means.^2));
 
             
             masked_bias(j) = sum(dist1)/sum(dist2);
         end
-        
-        
 
         % Update cluster centres
         dist3 = zeros(size(X));
         dist4 = zeros(size(X));
         for k=1:C
             for j=1:length(X)
+            % weights with memory constraint
+            %     linear_idx = brain_indices(j);        % the linear index in the full image
+            %     [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
+            %     gaussian_mask_temp = zeros(size(mask));
+            %     if x>4 && x<=size(gaussian_mask_temp,1)-4
+            %         if y>4 && y<=size(gaussian_mask_temp,2)-4
+            %             gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
+            %         elseif y<=4
+            %             gaussian_mask_temp(x-4:x+4, 1:y+4) = gaussian_mask(:,6-y:9);
+            %         else
+            %             gaussian_mask_temp(x-4:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(:,1:5+(size(gaussian_mask_temp,2)-y));
+            %         end
+            %     elseif x<=4
+            %         if y>4 && y<=size(gaussian_mask_temp,2)-4
+            %             gaussian_mask_temp(1:x+4, y-4:y+4) = gaussian_mask(6-x:9, :);
+            %         elseif y<=4
+            %             gaussian_mask_temp(1:x+4, 1:y+4) = gaussian_mask(6-x:9,6-y:9);
+            %         else
+            %             gaussian_mask_temp(1:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(6-x:9,1:5+(size(gaussian_mask_temp,2)-y));
+            %         end
+            %     else
+            %         if y>4 && y<=size(gaussian_mask_temp,2)-4
+            %             gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x), :);
+            %         elseif y<=4
+            %             gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), 1:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),6-y:9);
+            %         else
+            %             gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:size(gaussian_mask_temp,2)) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),1:5+(size(gaussian_mask_temp,2)-y));
+            %         end
+            %     end
+            %     weights = gaussian_mask_temp(mask==1);
+            %     dist3(j) = mem_q(j,k)*X(j)*sum(weights.*masked_bias);
+            %     dist4(j) = mem_q(j,k)*sum(weights.*(masked_bias.^2));
 
-                linear_idx = brain_indices(j);        % the linear index in the full image
-                [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
-                gaussian_mask_temp = zeros(size(mask));
-                if x>4 && x<=size(gaussian_mask_temp,1)-4
-                    if y>4 && y<=size(gaussian_mask_temp,2)-4
-                        gaussian_mask_temp(x-4:x+4, y-4:y+4) = gaussian_mask;
-                    elseif y<=4
-                        gaussian_mask_temp(x-4:x+4, 1:y+4) = gaussian_mask(:,6-y:9);
-                    else
-                        gaussian_mask_temp(x-4:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(:,1:5+(size(gaussian_mask_temp,2)-y));
-                    end
-                elseif x<=4
-                    if y>4 && y<=size(gaussian_mask_temp,2)-4
-                        gaussian_mask_temp(1:x+4, y-4:y+4) = gaussian_mask(6-x:9, :);
-                    elseif y<=4
-                        gaussian_mask_temp(1:x+4, 1:y+4) = gaussian_mask(6-x:9,6-y:9);
-                    else
-                        gaussian_mask_temp(1:x+4, y-4:size(gaussian_mask_temp,2)) = gaussian_mask(6-x:9,1:5+(size(gaussian_mask_temp,2)-y));
-                    end
-                else
-                    if y>4 && y<=size(gaussian_mask_temp,2)-4
-                        gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x), :);
-                    elseif y<=4
-                        gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), 1:y+4) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),6-y:9);
-                    else
-                        gaussian_mask_temp(x-4:size(gaussian_mask_temp,1), y-4:size(gaussian_mask_temp,2)) = gaussian_mask(1:5+(size(gaussian_mask_temp,1)-x),1:5+(size(gaussian_mask_temp,2)-y));
-                    end
-                end
-                weights = gaussian_mask_temp(mask==1);
-
-                % dist3(j) = mem_q(j,k)*X(j)*sum(weights(:,j).*masked_bias);
-                % dist4(j) = mem_q(j,k)*sum(weights(:,j).*(masked_bias.^2));
-
-                dist3(j) = mem_q(j,k)*X(j)*sum(weights.*masked_bias);
-                dist4(j) = mem_q(j,k)*sum(weights.*(masked_bias.^2));
+            % weights without memory constraint
+            dist3(j) = mem_q(j,k)*X(j)*sum(weights(:,j).*masked_bias);
+            dist4(j) = mem_q(j,k)*sum(weights(:,j).*(masked_bias.^2));
             end
             means(k) = sum(dist3)/sum(dist4);
         end
@@ -193,5 +181,5 @@ function [mem, means, masked_bias] = bias_fcm(X, C, q, bias, mask, gaussian_mask
     ylabel('Objective function');
     title('Iterative update of the objective function');
     grid on;
-    saveas(gcf,'../results/coins/bcfcm/obj.png');
+    % saveas(gcf,'../results/coins/bcfcm/obj.png');
 end

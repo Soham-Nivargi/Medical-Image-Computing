@@ -9,9 +9,10 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
     masked_bias = bias(mask==1);
 
     brain_indices = find(mask);
+    
+
+    % weights w_ij without memory constraint
     % weights = zeros(length(X), length(X));
-    % 
-    % % Compute weights w_ij common across all iterations
     % for j=1:length(X)
     %     linear_idx = brain_indices(j);        % the linear index in the full image
     %     [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
@@ -26,6 +27,7 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
     % Initialize distances
     for k=1:C
         for j=1:length(X)
+            % weights with memory constraint
             linear_idx = brain_indices(j);        % the linear index in the full image
                 [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
                 gaussian_mask_temp = zeros(size(mask));
@@ -55,9 +57,12 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
                     end
                 end
                 weights = gaussian_mask_temp(mask==1);
-            % distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
+
 
             distances(j,k) = sum(weights.*((X(j) - means(k)*masked_bias).^2));
+            
+            % weights without memory constraint
+            % distances(j,k) = sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2));
         end
     end
 
@@ -66,12 +71,12 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
 
     for iter = 1:max_iter
         mem_old = mem;
-       
         objective_old = objective;
 
         % Compute distances
         for k=1:C
             for j=1:length(X)
+                % weights with memory constraint
                 linear_idx = brain_indices(j);        % the linear index in the full image
                 [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
                 gaussian_mask_temp = zeros(size(mask));
@@ -101,12 +106,13 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
                     end
                 end
                 weights = gaussian_mask_temp(mask==1);
-
-                % distances(j,k) = lambdas(k) * sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2)) + ...
-                %     alpha * lambdas(k) * (sum(weights(:,j).*((1 - mem(:, k))))).^q;
-
+                
                 distances(j,k) = lambdas(k) * sum(weights.*((X(j) - means(k)*masked_bias).^2)) + ...
                     alpha * lambdas(k) * (sum(weights.*((1 - mem(:, k))))).^q;
+
+                % weights without memory constraint
+                % distances(j,k) = lambdas(k) * sum(weights(:,j).*((X(j) - means(k)*masked_bias).^2)) + ...
+                %     alpha * lambdas(k) * (sum(weights(:,j).*((1 - mem(:, k))))).^q;
             end
         end
 
@@ -115,22 +121,9 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
 
         % Update bias
         mem_q = mem.^q;
-        
-        % for i=1:length(X)
-        %     dist1 = zeros(size(X));
-        %     dist2 = zeros(size(X));
-        %     for j=1:length(X)
-        %         dist1(j) = weights(i,j)*X(j)*(mem_q(j,:)*means);
-        %         dist2(j) = weights(i,j)*(mem_q(j,:)*(means.^2));
-        %     end
-        %     masked_bias(i) = sum(dist1)/sum(dist2);
-        % end
-
-        % dist1 = weights .* (X' .* (mem_q*means));  % size: N × N
-        % dist2 = weights .* (mem_q*(means.^2));        % size: N × N
-        % masked_bias = sum(dist1, 1) ./ sum(dist2, 1);
-
+ 
         for i=1:length(X)
+            % weights with memory constraint
             linear_idx = brain_indices(i);        % the linear index in the full image
                 [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
                 gaussian_mask_temp = zeros(size(mask));
@@ -161,11 +154,12 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
                 end
                 weights = gaussian_mask_temp(mask==1);
 
-            % dist1 = weights(:, i).*X.*(mem_q*means).*lambdas;
-            % dist2 = weights(:, i).*(mem_q*(means.^2).*lambdas);
-
             dist1 = weights.*X.*(mem_q*means).*lambdas;
             dist2 = weights.*(mem_q*(means.^2).*lambdas);
+
+            % weights without memory constraint
+            % dist1 = weights(:, i).*X.*(mem_q*means).*lambdas;
+            % dist2 = weights(:, i).*(mem_q*(means.^2).*lambdas);
 
             masked_bias(i) = sum(dist1)/sum(dist2);
         end
@@ -185,7 +179,7 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
         dist4 = zeros(size(X));
         for k=1:C
             for j=1:length(X)
-
+                % weights with memory constraint
                 linear_idx = brain_indices(j);        % the linear index in the full image
                 [x, y] = ind2sub(size(mask), linear_idx);  % convert to (row, col) = (x, y)
                 gaussian_mask_temp = zeros(size(mask));
@@ -218,9 +212,9 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
                 dist3(j) = mem_q(j,k)*X(j)*sum(weights.*masked_bias);
                 dist4(j) = mem_q(j,k)*sum(weights.*(masked_bias.^2));
                 
-                % without memory 
-                dist3(j) = mem_q(j,k)*X(j)*sum(weights(:,j).*masked_bias);
-                dist4(j) = mem_q(j,k)*sum(weights(:,j).*(masked_bias.^2));
+                % weights without memory constraint
+                % dist3(j) = mem_q(j,k)*X(j)*sum(weights(:,j).*masked_bias);
+                % dist4(j) = mem_q(j,k)*sum(weights(:,j).*(masked_bias.^2));
             end
             means(k) = sum(dist3)/sum(dist4);
         end
@@ -241,6 +235,6 @@ function [mem, means, masked_bias] = bias_fcm_r(X, C, q, bias, mask, gaussian_ma
     ylabel('Objective function');
     title('Iterative update of the objective function');
     grid on;
-    % saveas(gcf,'../results/coins/bcefcm_r/obj.png');
+    saveas(gcf,'../results/coins/bcefcm_r/obj.png');
 
 end
