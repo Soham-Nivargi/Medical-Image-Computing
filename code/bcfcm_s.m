@@ -1,14 +1,17 @@
 clear; close all; clc;
 addpath(genpath('src'));
 
-data = load('../data/assignmentSegmentBrain.mat');
+% data = load('../data/assignmentSegmentBrain.mat');
+% image = data.imageData;
+% mask = data.imageMask;
 
-image = data.imageData;
-mask = data.imageMask;
+image = im2double(imread("coins.png"));
+mask = ones(size(image));
+
 image = image .* mask;
 brainPixels = double(image(mask == 1));
 
-K=3;
+K=2;
 [label_vector, means] = kmeans_estimate(brainPixels, K, 25, 1e-4);
 
 mask_size = 9;
@@ -24,7 +27,7 @@ gaussian_mask = g_kernel_1d * g_kernel_1d';
 gaussian_mask = gaussian_mask / sum(gaussian_mask(:));
 
 bias = double(mask);
-num_iters = 100;
+num_iters = 10;
 tol = 1e-5;
 q=2;
 
@@ -33,50 +36,94 @@ q=2;
 label_image = zeros(size(mask));
 final_label_image = zeros(size(mask));
 
-figure;
-for i=1:3
-    if i==1
-        prt = 'CSF';
-        label_image(mask==1) = 1*memberships(:, i);
-        final_label_image = final_label_image + label_image;
-    elseif i==3
-        prt = 'White matter';
-        label_image(mask==1) = 3*memberships(:, i);
+% mri
+% figure;
+% for i=1:3
+%     if i==1
+%         prt = 'CSF';
+%         label_image(mask==1) = centres(i)*memberships(:, i);
+%         final_label_image = final_label_image + label_image;
+%     elseif i==3
+%         prt = 'White matter';
+%         label_image(mask==1) = centres(i)*memberships(:, i);
+%         final_label_image = final_label_image + label_image;
+%     else
+%         prt = 'Gray matter';
+%         label_image(mask==1) = centres(i)*memberships(:, i);
+%         final_label_image = final_label_image + label_image;
+%     end
+%     subplot(1,3,i);
+%     label_image = zeros(size(mask));label_image(mask==1) = memberships(:, i);
+%     imagesc(label_image);
+%     colormap(gray);
+%     title([prt ' Membership']);
+%     axis image;
+% end
+% saveas(gcf, '../results/mri/bcfcm_s/memberships.png');
+% 
+% figure;
+% imshow(final_label_image, []);
+% title('Final label image (in grayscale)');
+% saveas(gcf, '../results/mri/bcfcm_s/grayscale_label.png');
+% 
+% figure();
+% imagesc(final_label_image.*mask);
+% colormap(jet(4));
+% colorbar('Ticks', 1:3, ...
+%          'TickLabels', {'Cluster 1', 'Cluster 2', 'Cluster 3'});
+% axis off;
+% title('Final Segmentation');
+% axis off;
+% title('Final label image (color)');
+% saveas(gcf, '../results/mri/bcfcm_s/color_label.png');
+% 
+% figure; imshow(double(mask)); title('Initial bias estimate')
+% saveas(gcf, '../results/mri/bcfcm_s/init_bias.png')
+% figure; label_bias = zeros(size(mask)); label_bias(mask==1) = bias_field;imshow(label_bias); title('Bias field')
+% saveas(gcf, '../results/mri/bcfcm_s/bias_field.png')
+% brain_pix = brainPixels./bias_field;
+% figure; label_finale = zeros(size(mask)); label_finale(mask==1) = brain_pix;imshow(label_finale, []); title('Bias corrected Image')
+% saveas(gcf, '../results/mri/bcfcm_s/bias_corrected.png')
+
+% coins
+figure();
+for i=1:2
+    if abs(centres(i)-0.22)<0.1
+        prt = 'Background';
+        label_image(mask==1) = centres(i)*memberships(:, i);
         final_label_image = final_label_image + label_image;
     else
-        prt = 'Gray matter';
-        label_image(mask==1) = 2*memberships(:, i);
+        prt = 'Coins';
+        label_image(mask==1) = centres(i)*memberships(:, i);
         final_label_image = final_label_image + label_image;
     end
-    subplot(1,3,i);
+    subplot(1,2,i);
     label_image = zeros(size(mask));label_image(mask==1) = memberships(:, i);
     imagesc(label_image);
     colormap(gray);
     title([prt ' Membership']);
     axis image;
 end
-saveas(gcf, '../results/mri/bcfcm_s/memberships.png');
+saveas(gcf, '../results/coins/bcefcm_r/memberships.png');
 
 figure;
 imshow(final_label_image, []);
 title('Final label image (in grayscale)');
-saveas(gcf, '../results/mri/bcfcm_s/grayscale_label.png');
+saveas(gcf, '../results/coins/bcefcm_r/grayscale_label.png');
 
 figure();
 imagesc(final_label_image.*mask);
-colormap(jet(4));
-colorbar('Ticks', 1:3, ...
-         'TickLabels', {'Cluster 1', 'Cluster 2', 'Cluster 3'});
+colormap(jet(2));
+colorbar('Ticks', 1:2, ...
+         'TickLabels', {'Cluster 1', 'Cluster 2'});
 axis off;
 title('Final Segmentation');
 axis off;
 title('Final label image (color)');
-saveas(gcf, '../results/mri/bcfcm_s/color_label.png');
+saveas(gcf, '../results/coins/bcefcm_r/color_label.png');
 
-figure; imshow(double(mask)); title('Initial bias estimate')
-saveas(gcf, '../results/mri/bcfcm_s/init_bias.png')
 figure; label_bias = zeros(size(mask)); label_bias(mask==1) = bias_field;imshow(label_bias); title('Bias field')
-saveas(gcf, '../results/mri/bcfcm_s/bias_field.png')
+saveas(gcf, '../results/coins/bcefcm_r/bias_field.png')
 brain_pix = brainPixels./bias_field;
 figure; label_finale = zeros(size(mask)); label_finale(mask==1) = brain_pix;imshow(label_finale, []); title('Bias corrected Image')
-saveas(gcf, '../results/mri/bcfcm_s/bias_corrected.png')
+saveas(gcf, '../results/coins/bcefcm_r/bias_corrected.png')
